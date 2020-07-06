@@ -8,13 +8,12 @@ def get_file_location
 end
 
 def read_from_file(file_location)
+  input_string = ""
   begin
     input_file = File.new(file_location, "r")
-    input_string = ""
     input_file.each_byte { |ch| input_string << ch }
   rescue => e
-    puts e.to_s
-    return ""
+    puts "ERROR: READ_FROM_FILE: #{e.to_s}"
   ensure
     input_file.close if input_file
   end
@@ -29,7 +28,7 @@ def convert_string_to_int_array(input_string)
 end
 
 def file_to_int_array
-  file_location = get_file_location()
+  file_location = get_file_location
   return [] if file_location == ""
   input_string = read_from_file(file_location)
   return [] if input_string == ""
@@ -37,50 +36,52 @@ def file_to_int_array
   input_array
 end
 
-def initialization()
+def initialization
   puts "Welcome to Binary Search Tree Utility \n\n"
-  bst = BinarySearchTree.new()
+  bst = BinarySearchTree.new
   puts "Do you want to initialize by importing values from a file ? \n" \
        "Example: './output/output.txt' (Leave blank to not import)"
   input_array = file_to_int_array
-  input_array.each { |value| bst.insert_node(value) }
+  count = 0
+  input_array.each { |value|
+    bst.insert_node(value)
+    count += 1
+  }
   puts "\n Initialization Complete! \n"
-  puts "Initial state of tree is: (Preorder)"
-  p bst.preorder_traversal()
+  puts "Added #{count} nodes."
   puts "\n\n"
   bst
 end
 
-def take_single_input()
+def take_single_input
   puts "Enter a value:"
   new_input = STDIN.gets.chomp
   if new_input.to_i.to_s == new_input
     new_input
   else
     puts "Invalid Input!"
-    new_input = take_single_input()
+    new_input = take_single_input
   end
   new_input
 end
 
-def take_multiple_inputs()
+def take_multiple_inputs
   puts "Enter comma seperated numbers:"
-  new_input = STDIN.gets.chomp
-  new_input = new_input.split(",")
-  input_valid = true
-  new_input.each { |str|
+  input = STDIN.gets.chomp
+  input = input.split(",")
+  is_valid_input = true
+  input.each { |str|
     unless str.to_i.to_s == str
-      puts "Invalid Input!"
-      input_valid = false
+      is_valid_input = false
       break
     end
   }
-  if input_valid
-    new_input = new_input.map { |curr_value| curr_value.to_i }
-  else
-    new_input = take_multiple_inputs()
-  end
-  new_input
+  raise "ERROR: Invalid Input" unless is_valid_input
+  #   input = input.map { |curr_value| curr_value.to_i }
+  # else
+  #   input = take_multiple_inputs
+  # end
+  input
 end
 
 def display_operations(curr_node)
@@ -96,19 +97,19 @@ def quit_operation(bst)
   puts "Leave blank for NO or enter 'Y' or 'y' for YES."
   input = STDIN.gets.chomp
   if input == "y" || input == "Y"
-    puts "End state of BST(Inorder Traversal) saved in output.txt"
+    puts "End state of BST saved in ./output/output.txt"
     begin
       output_file = File.new("./output/output.txt", "w")
       elements = bst.preorder_traversal
       output_string = ""
-      elements.each { | element|
+      elements.each { |element|
         output_string << element.to_s
         output_string << ","
       }
       output_string = output_string.delete_suffix(",")
       output_file << output_string
     rescue => e
-      puts e
+      puts "ERROR: WRITE_TO_FILE: #{e.to_s}"
     ensure
       output_file.close if output_file
     end
@@ -125,34 +126,35 @@ def perform_operation(curr_node, input_option)
 
   case option_selector
   when "INSERT_MULTIPLE"
-    new_input = take_multiple_inputs()
-    new_input.each { |curr_value|
-      if curr_value
-        bst.insert_node(curr_value)
-      end
-    }
+    begin
+      new_input = take_multiple_inputs
+    rescue => e
+      puts e
+    ensure
+      new_input.each { |curr_value| bst.insert_node(curr_value) if curr_value }
+    end
   when "LARGEST"
-    puts bst.find_largest_node().value
+    puts bst.find_largest_node.value
   when "SMALLEST"
-    puts bst.find_smallest_node().value
+    puts bst.find_smallest_node.value
   when "INORDER"
-    p "Output: #{bst.inorder_traversal()}"
+    p "Output: #{bst.inorder_traversal}"
   when "PREORDER"
-    p "Output: #{bst.preorder_traversal()}"
+    p "Output: #{bst.preorder_traversal}"
   when "POSTORDER"
-    p "Output: #{bst.postorder_traversal()}"
+    p "Output: #{bst.postorder_traversal}"
   when "SEARCH"
     puts "Enter a value to search:"
-    new_input = take_single_input()
+    new_input = take_single_input
     puts "Search found at: #{bst.search_by_value(new_input)}"
   when "REMOVE"
     puts "Enter a value to remove:"
-    new_input = take_single_input()
+    new_input = take_single_input
     puts " Removed #{bst.remove_by_value(new_input)} element."
   when "ROOT_TO_LEAF"
-    bst.print_root_to_leaf_paths()
+    bst.print_root_to_leaf_paths
   when "LEVELORDER"
-    p "Output: #{bst.levelorder_traversal()}"
+    p "Output: #{bst.levelorder_traversal}"
   else
     puts "Invalid Input"
   end
@@ -208,7 +210,7 @@ operations = {
 }
 
 def main(operations)
-  bst = initialization()
+  bst = initialization
 
   # create_operations_tree(operations)
   curr_node = operations
