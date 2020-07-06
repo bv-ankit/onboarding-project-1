@@ -50,19 +50,38 @@ def initialization()
   puts "\n\n"
 end
 
+
 def take_single_input()
+    puts "Enter a value:"
+    new_input = STDIN.gets.chomp
+    if new_input.to_i.to_s == new_input
+      new_input
+    else
+      puts "Invalid Input!"
+      new_input = take_single_input()
+    end
+    new_input
 end
 
 def take_multiple_inputs()
+  puts "Enter comma seperated numbers:"
+  new_input = STDIN.gets.chomp
+  new_input = new_input.split(",")
+  input_valid = true
+  new_input.each { |str| 
+    unless str.to_i.to_s == str 
+      puts "Invalid Input!"
+      input_valid = false
+      break
+    end
+  }
+  if input_valid
+    new_input = new_input.map { |curr_value| curr_value.to_i }
+  else
+    new_input = take_multiple_inputs()
+  end
+  new_input
 end
-
-# def add_operation(map, id, message, output_message, error_message)
-#   child_operations = {}
-#   map[id] = [message, output_message, error_message, child_operations]
-# end
-
-# def create_operations_tree(operations)
-# end
 
 def display_operations(curr_node)
   puts "Choose an input option: (Eg: 1) \n"
@@ -73,6 +92,17 @@ def display_operations(curr_node)
 end
 
 def quit_operation()
+  puts "End state of BST(Inorder Traversal) saved in output.txt"
+  begin
+    output_file = File.new("output.txt", "w")
+    output_file.puts(p bst.inorder_traversal)
+  rescue
+    puts "Error in writing file"
+  ensure
+    output_file.close if output_file
+  end
+
+  puts "Exiting..."
 end
 
 operations = {
@@ -111,18 +141,6 @@ operations = {
   }
 }
 
-# class Operation
-#   attr_accessor :id, :childs[], :perform, :messages[]
-#   def perform_operation()
-#   end
-  
-#   def add_operation()
-#   end
-
-#   def display_options()
-#   end
-# end
-
 
 def perform_operation(curr_node, input_option)
   option_selector = ''
@@ -133,24 +151,10 @@ def perform_operation(curr_node, input_option)
 
   case option_selector
   when "QUIT"
-    puts "End state of BST(Inorder Traversal) saved in output.txt"
-    begin
-      output_file = File.new("output.txt", "w")
-      output_file.puts(p bst.inorder_traversal)
-    rescue
-      puts "Error in writing file"
-    ensure
-      output_file.close if output_file
-    end
-
-    puts "Exiting..."
+    quit_operation()
     break
   when "INSERT_MULTIPLE"
-    puts "Enter comma seperated numbers to add to the tree:"
-    new_input = STDIN.gets.chomp
-    new_input = new_input.split(",")
-    new_input.each { |str| abort "Invalid Input" unless str.to_i.to_s == str }
-    new_input = new_input.map { |curr_value| curr_value.to_i }
+    new_input = take_multiple_inputs()
     new_input.each { |curr_value|
       if curr_value
         bst.insert_node(curr_value)
@@ -161,36 +165,27 @@ def perform_operation(curr_node, input_option)
   when "SMALLEST"
     puts bst.find_smallest_node().value
   when "INORDER"
-    p bst.inorder_traversal()
+    p "Output: #{bst.inorder_traversal()}"
   when "PREORDER"
-    p bst.preorder_traversal()
+    p "Output: #{bst.preorder_traversal()}"
   when "POSTORDER"
-    p bst.postorder_traversal()
+    p "Output: #{bst.postorder_traversal()}"
   when "SEARCH"
-    puts "Enter a value to find:"
-    new_input = STDIN.gets.chomp
-    new_input = new_input.split(",")
-    if new_input[0].to_i
-      puts "Search found at: #{bst.search_by_value(new_input[0].to_i)}"
-    else
-      puts "Invalid Input"
-    end
+    puts "Enter a value to search:"
+    new_input = take_single_input()
+    puts "Search found at: #{bst.search_by_value(new_input)}"
   when "REMOVE"
     puts "Enter a value to remove:"
-    new_input = STDIN.gets.chomp
-    new_input = new_input.split(",")
-    if new_input[0].to_i
-      puts " Removed #{bst.remove_by_value(new_input[0].to_i)} element."
-    else
-      puts "Invalid Input"
-    end
+    new_input = take_single_input()
+    puts " Removed #{bst.remove_by_value(new_input)} element."
   when "ROOT_TO_LEAF"
     bst.print_root_to_leaf_paths()
   when "LEVELORDER"
-    p bst.levelorder_traversal()
+    p "Output: #{bst.levelorder_traversal()}"
   else
     puts "Invalid Input"
   end
+  puts "\n\n"
 end
 
 def main()
@@ -227,3 +222,24 @@ main()
   # 3.Search
       # Search an element by value
   # 4.Quit
+  
+# def add_operation(map, id, message, output_message, error_message)
+#   child_operations = {}
+#   map[id] = [message, output_message, error_message, child_operations]
+# end
+
+# def create_operations_tree(operations)
+# end
+
+
+# class Operation
+#   attr_accessor :id, :childs[], :perform, :messages[]
+#   def perform_operation()
+#   end
+  
+#   def add_operation()
+#   end
+
+#   def display_options()
+#   end
+# end
