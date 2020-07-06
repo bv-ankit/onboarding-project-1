@@ -48,19 +48,19 @@ def initialization()
   puts "Initial state of tree is: (Preorder)"
   p bst.preorder_traversal()
   puts "\n\n"
+  bst
 end
 
-
 def take_single_input()
-    puts "Enter a value:"
-    new_input = STDIN.gets.chomp
-    if new_input.to_i.to_s == new_input
-      new_input
-    else
-      puts "Invalid Input!"
-      new_input = take_single_input()
-    end
+  puts "Enter a value:"
+  new_input = STDIN.gets.chomp
+  if new_input.to_i.to_s == new_input
     new_input
+  else
+    puts "Invalid Input!"
+    new_input = take_single_input()
+  end
+  new_input
 end
 
 def take_multiple_inputs()
@@ -68,8 +68,8 @@ def take_multiple_inputs()
   new_input = STDIN.gets.chomp
   new_input = new_input.split(",")
   input_valid = true
-  new_input.each { |str| 
-    unless str.to_i.to_s == str 
+  new_input.each { |str|
+    unless str.to_i.to_s == str
       puts "Invalid Input!"
       input_valid = false
       break
@@ -86,73 +86,44 @@ end
 def display_operations(curr_node)
   puts "Choose an input option: (Eg: 1) \n"
 
-  curr_node['childs'].each{ | options|
-    puts "#{options.id}. #{option['messages']['MSG']}"
-  }
+  curr_node["childs"].each do |key, option|
+    puts "#{option["id"]}. #{option["messages"]["MSG"]}"
+  end
 end
 
-def quit_operation()
-  puts "End state of BST(Inorder Traversal) saved in output.txt"
-  begin
-    output_file = File.new("output.txt", "w")
-    output_file.puts(p bst.inorder_traversal)
-  rescue
-    puts "Error in writing file"
-  ensure
-    output_file.close if output_file
+def quit_operation(bst)
+  puts "Do you want to save the end state of the tree?"
+  puts "Leave blank for NO or enter 'Y' or 'y' for YES."
+  input = STDIN.gets.chomp
+  if input == "y" || input == "Y"
+    puts "End state of BST(Inorder Traversal) saved in output.txt"
+    begin
+      output_file = File.new("./output/output.txt", "w")
+      elements = bst.preorder_traversal
+      output_string = ""
+      elements.each { | element|
+        output_string << element.to_s
+        output_string << ","
+      }
+      output_string = output_string.delete_suffix(",")
+      output_file << output_string
+    rescue => e
+      puts e
+    ensure
+      output_file.close if output_file
+    end
   end
-
   puts "Exiting..."
 end
 
-operations = {
-  "id" => "",
-  "childs"=>{
-    "PRINT" => {
-      "id" => 1,
-      "messsages" => {
-        "ERROR" => "",
-        "MSG" => "",
-        "OUTPUT" => "",
-      },
-      "perform" => nil,
-      "CHILDS" => {
-        "LARGEST" => {},
-        "SMALLEST" => {},
-        "TRAVERSAL" => {},
-        "ROOT_TO_LEAF" => {},
-      },
-    },
-    "MODIFY" => {
-      "INSERT" => {},
-      "REMOVE" => {},
-    },
-    "SEARCH" => {
-      "SEARCH_BY_VALUE" => {},
-    },
-    "QUIT" => {},
-    "ROOT" => {}
-  },
-  "perform" => "",
-  "messages" => {
-    "MSG" => "",
-    "ERROR" => "",
-    "OUTPUT" => ""
-  }
-}
-
-
 def perform_operation(curr_node, input_option)
-  option_selector = ''
+  option_selector = ""
   curr_node["childs"].each { |option|
     option_selector = option.perform if option.id == input_option
     break
   }
 
   case option_selector
-  when "QUIT"
-    quit_operation()
-    break
   when "INSERT_MULTIPLE"
     new_input = take_multiple_inputs()
     new_input.each { |curr_value|
@@ -188,41 +159,94 @@ def perform_operation(curr_node, input_option)
   puts "\n\n"
 end
 
-def main()
-  initialization()
+operations = {
+  "id" => "",
+  "childs" => {
+    "PRINT" => {
+      "id" => 1,
+      "messages" => {
+        "ERROR" => "",
+        "MSG" => "Print elements",
+        "OUTPUT" => "",
+      },
+      "CHILDS" => {
+        "LARGEST" => {},
+        "SMALLEST" => {},
+        "TRAVERSAL" => {},
+        "ROOT_TO_LEAF" => {},
+      },
+    },
+    "MODIFY" => {
+      "id" => 2,
+      "childs" => {
+        "INSERT" => {},
+        "REMOVE" => {},
+      },
+      "messages" => {
+        "ERROR" => "",
+        "MSG" => "Modify elements",
+        "OUTPUT" => "",
+      },
+    },
+    "SEARCH" => {
+      "id" => 3,
+      "childs" => {
+        "SEARCH_BY_VALUE" => {},
+      },
+      "messages" => {
+        "ERROR" => "",
+        "MSG" => "Search elements",
+        "OUTPUT" => "",
+      },
+    },
+  },
+  "messages" => {
+    "MSG" => "",
+    "ERROR" => "",
+    "OUTPUT" => "",
+  },
+}
 
-  create_operations_tree(operations)
-	curr_node
+def main(operations)
+  bst = initialization()
+
+  # create_operations_tree(operations)
+  curr_node = operations
+  input_option = 1
   while input_option
     display_operations(curr_node)
     input_option = STDIN.gets.chomp
     puts "Input provided: #{input_option}"
+    if input_option == "quit"
+      quit_operation(bst)
+      break
+    end
     perform_operation(curr_node, input_option)
   end
 end
 
-main()
+main(operations)
 
-  # 1.Print
-    # 1.Print largest element
-    # 2.Print smallest element
-    # 3.Print Traversal
-      # 1.Print Inorder Traversal
-      # 2.Print Preorder Traversal
-      # 3.Print Postorder Traversal
-      # 4.Print Level Order Traversal
-    # 4.Print all Root to Leaf paths
-  # 2.Modify
-    # 1.Insert Operation
-      # 1.Add single element
-      # 2.Add multiple comma seperated elements
-      # 3.Add elements from a file
-    # 2.Remove Operation
-      # Remove an element by value
-  # 3.Search
-      # Search an element by value
-  # 4.Quit
-  
+# 1.Print
+#   1.Print largest element
+#   2.Print smallest element
+#   3.Print Traversal
+#     1.Print Inorder Traversal
+#     2.Print Preorder Traversal
+#     3.Print Postorder Traversal
+#     4.Print Level Order Traversal
+#   4.Print all Root to Leaf paths
+# 2.Modify
+#   1.Insert Operation
+#     1.Add single element
+#     2.Add multiple comma seperated elements
+#     3.Add elements from a file
+#   2.Remove Operation
+#     Remove an element by value
+# 3.Search
+#   Search an element by value
+# 4.Quit
+
 # def add_operation(map, id, message, output_message, error_message)
 #   child_operations = {}
 #   map[id] = [message, output_message, error_message, child_operations]
@@ -231,12 +255,11 @@ main()
 # def create_operations_tree(operations)
 # end
 
-
 # class Operation
 #   attr_accessor :id, :childs[], :perform, :messages[]
 #   def perform_operation()
 #   end
-  
+
 #   def add_operation()
 #   end
 
