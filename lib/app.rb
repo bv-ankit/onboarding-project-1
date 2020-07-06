@@ -10,7 +10,7 @@ end
 def read_from_file(file_location)
   input_string = ""
   begin
-    input_file = File.new(file_location, "r")
+    input_file = File.new(file_location, "rb")
     input_file.each_byte { |ch| input_string << ch }
   rescue => e
     puts "ERROR: READ_FROM_FILE: #{e.to_s}"
@@ -95,7 +95,7 @@ def quit_operation(bst)
   if input == "y" || input == "Y"
     puts "End state of BST saved in ./output/output.txt"
     begin
-      output_file = File.new("./output/output.txt", "w")
+      output_file = File.new("./output/output.txt", "wb")
       elements = bst.preorder_traversal
       output_string = ""
       elements.each { |element|
@@ -103,7 +103,7 @@ def quit_operation(bst)
         output_string << ","
       }
       output_string = output_string.delete_suffix(",")
-      output_string.each_char {|char| output_file << char}
+      output_string.each_char { |char| output_file << char }
     rescue => e
       puts "ERROR: WRITE_TO_FILE: #{e.to_s}"
     ensure
