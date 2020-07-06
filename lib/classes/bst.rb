@@ -13,24 +13,39 @@ class BinarySearchTree
     end
   end
 
-  def preorder_traversal
-    preorder_rec(@root)
+  def preorder_traversal(node = @root)
+    return [] unless node
+    [node.value] +
+      preorder_traversal(node.left_node) +
+      preorder_traversal(node.right_node)
   end
 
-  def inorder_traversal
-    inorder_rec(@root)
+  def inorder_traversal(node = @root)
+    return [] unless node
+    inorder_traversal(node.left_node) +
+      [node.value] +
+      inorder_traversal(node.right_node)
   end
 
-  def postorder_traversal
-    postorder_rec(@root)
+  def postorder_traversal(node = @root)
+    return [] unless node
+    postorder_traversal(node.left_node) +
+      postorder_traversal(node.right_node) +
+      [node.value]
   end
 
-  def find_largest_node
-    find_largest_node_rec(@root)
+  def find_largest_node(node = @root)
+    return nil unless node
+    return node unless node.right_node
+    find_largest_node(node.right_node)
   end
 
-  def find_smallest_node
-    min(@root)
+  def find_smallest_node(node = @root)
+    if node.left_node.nil?
+      return node
+    else
+      find_smallest_node(node.left_node)
+    end
   end
 
   def levelorder_traversal
@@ -64,9 +79,22 @@ class BinarySearchTree
     nil
   end
 
-  def print_root_to_leaf_paths
-    curr_path = []
-    root_to_leaf_rec(@root, curr_path)
+  def print_root_to_leaf_paths(node = @root, curr_path = [])
+    if node.left_node == nil &&
+       node.right_node == nil
+      curr_path.push(node.value)
+      p curr_path
+      curr_path.pop
+      return
+    end
+
+    curr_path.push(node.value)
+
+    print_root_to_leaf_paths(node.left_node, curr_path) if node.left_node
+
+    print_root_to_leaf_paths(node.right_node, curr_path) if node.right_node
+
+    curr_path.pop
   end
 
   private
@@ -91,20 +119,6 @@ class BinarySearchTree
     node
   end
 
-  def find_largest_node_rec(node)
-    return nil unless node
-    return node unless node.right_node
-    find_largest_node_rec(node.right_node)
-  end
-
-  def min(node)
-    if node.left_node.nil?
-      return node
-    else
-      min(node.left_node)
-    end
-  end
-
   def remove_min(node)
     node = nil
   end
@@ -112,23 +126,6 @@ class BinarySearchTree
   def replace_value(min_node, node)
     node.value = min_node.value
   end
-
-  def root_to_leaf_rec(node, curr_path)
-    if node.left_node == nil &&
-       node.right_node == nil
-      curr_path.push(node.value)
-      p curr_path
-      curr_path.pop
-      return
-    end
-
-    curr_path.push(node.value)
-
-    root_to_leaf_rec(node.left_node, curr_path) if node.left_node
-
-    root_to_leaf_rec(node.right_node, curr_path) if node.right_node
-
-    curr_path.pop
   end
 
   def insert_node_rec(node, value)
@@ -147,26 +144,5 @@ class BinarySearchTree
     end
 
     node
-  end
-
-  def inorder_rec(node)
-    return [] unless node
-    inorder_rec(node.left_node) +
-      [node.value] +
-      inorder_rec(node.right_node)
-  end
-
-  def preorder_rec(node)
-    return [] unless node
-    [node.value] +
-      preorder_rec(node.left_node) +
-      preorder_rec(node.right_node)
-  end
-
-  def postorder_rec(node)
-    return [] unless node
-    postorder_rec(node.left_node) +
-      postorder_rec(node.right_node) +
-      [node.value]
   end
 end
