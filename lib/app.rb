@@ -80,12 +80,14 @@ def take_multiple_inputs
   input
 end
 
-def display_operations(curr_node)
+def display_categories(operations)
   puts "Choose an input option: (Eg: 1) \n"
+  operations.each { |key, option| puts "#{key}. #{option[:msg]}" }
+end
 
-  curr_node["childs"].each do |key, option|
-    puts "#{option["id"]}. #{option["messages"]["MSG"]}"
-  end
+def display_operations(operations, category)
+  puts "Choose an input option: (Eg: 1) \n"
+  operations[category].each { |key, option| puts "#{key}. #{option}" }
 end
 
 def quit_operation(bst)
@@ -113,152 +115,120 @@ def quit_operation(bst)
   puts "Exiting..."
 end
 
-def perform_operation(curr_node, input_option)
-  option_selector = ""
-  curr_node["childs"].each { |option|
-    option_selector = option.perform if option.id == input_option
-    break
-  }
-
-  case option_selector
-  when "INSERT_MULTIPLE"
-    begin
-      new_input = take_multiple_inputs
-    rescue => e
-      puts e
-    ensure
-      new_input.each { |curr_value| bst.insert_node(curr_value) if curr_value }
+def perform_operation(input_option, selected_category, bst, operations)
+  case selected_category
+  when OperationCategory::PRINT
+    case input_option
+    when Operation::LARGEST_ELEMENT
+      puts bst.find_largest_node.value
+    when Operation::SMALLEST_ELEMENT
+      puts bst.find_smallest_node.value
+    when Operation::INORDER
+      p "Output: #{bst.inorder_traversal}"
+    when Operation::PREORDER
+      p "Output: #{bst.preorder_traversal}"
+    when Operation::POSTORDER
+      p "Output: #{bst.postorder_traversal}"
+    when Operation::ROOT_TO_LEAF
+      bst.print_root_to_leaf_paths
+    when Operation::LEVELORDER
+      p "Output: #{bst.levelorder_traversal}"
+    else
+      puts "Invalid input"
     end
-  when "LARGEST"
-    puts bst.find_largest_node.value
-  when "SMALLEST"
-    puts bst.find_smallest_node.value
-  when "INORDER"
-    p "Output: #{bst.inorder_traversal}"
-  when "PREORDER"
-    p "Output: #{bst.preorder_traversal}"
-  when "POSTORDER"
-    p "Output: #{bst.postorder_traversal}"
-  when "SEARCH"
-    puts "Enter a value to search:"
-    new_input = take_single_input
-    puts "Search found at: #{bst.search_by_value(new_input)}"
-  when "REMOVE"
-    puts "Enter a value to remove:"
-    new_input = take_single_input
-    puts " Removed #{bst.remove_by_value(new_input)} element."
-  when "ROOT_TO_LEAF"
-    bst.print_root_to_leaf_paths
-  when "LEVELORDER"
-    p "Output: #{bst.levelorder_traversal}"
+  when OperationCategory::MODIFY
+    case input_option
+    when Operation::INSERT_MULTIPLE
+      begin
+        new_input = take_multiple_inputs
+      rescue => e
+        puts e
+      end
+      new_input.each { |curr_value| bst.insert_node(curr_value) if curr_value }
+    when Operation::REMOVE_ELEMENT
+      puts "Enter a value to remove:"
+      new_input = take_single_input
+      puts " Removed #{bst.remove_by_value(new_input)} element."
+    else
+      puts "Invalid Input"
+    end
+  when OperationCategory::SEARCH
+    if input_option == Operation::SEARCH_ELEMENT
+      puts "Enter a value to search:"
+      new_input = take_single_input
+      puts "Search found at: #{bst.search_by_value(new_input)}"
+    end
   else
     puts "Invalid Input"
   end
   puts "\n\n"
 end
 
-operations = {
-  "id" => "",
-  "childs" => {
-    "PRINT" => {
-      "id" => 1,
-      "messages" => {
-        "ERROR" => "",
-        "MSG" => "Print elements",
-        "OUTPUT" => "",
-      },
-      "CHILDS" => {
-        "LARGEST" => {},
-        "SMALLEST" => {},
-        "TRAVERSAL" => {},
-        "ROOT_TO_LEAF" => {},
-      },
-    },
-    "MODIFY" => {
-      "id" => 2,
-      "childs" => {
-        "INSERT" => {},
-        "REMOVE" => {},
-      },
-      "messages" => {
-        "ERROR" => "",
-        "MSG" => "Modify elements",
-        "OUTPUT" => "",
-      },
-    },
-    "SEARCH" => {
-      "id" => 3,
-      "childs" => {
-        "SEARCH_BY_VALUE" => {},
-      },
-      "messages" => {
-        "ERROR" => "",
-        "MSG" => "Search elements",
-        "OUTPUT" => "",
-      },
-    },
-  },
-  "messages" => {
-    "MSG" => "",
-    "ERROR" => "",
-    "OUTPUT" => "",
-  },
-}
+$operations = {}
+
+def add_category(type, msg)
+  $operations[type] = { :msg => msg }
+  type
+end
+
+def add_operation(type, msg, operation_type)
+  $operations[operation_type][type] = msg
+  type
+end
+
+module Commands
+  QUIT = "quit"
+  HOME = "home"
+end
+
+module OperationCategory
+  PRINT = add_category(1, "Print")
+  MODIFY = add_category(2, "Modify")
+  SEARCH = add_category(3, "Search")
+end
+
+module Operation
+  SMALLEST_ELEMENT = add_operation(1, "Smallest Element", OperationCategory::PRINT)
+  LARGEST_ELEMENT = add_operation(2, "Largest Element", OperationCategory::PRINT)
+  PREORDER = add_operation(3, "Preorder Traversal", OperationCategory::PRINT)
+  INORDER = add_operation(4, "Inorder Traversal", OperationCategory::PRINT)
+  POSTORDER = add_operation(5, "Postorder Traversal", OperationCategory::PRINT)
+  LEVELORDER = add_operation(6, "Levelorder Traversal", OperationCategory::PRINT)
+  ROOT_TO_LEAF = add_operation(7, "Print all root to leaf paths", OperationCategory::PRINT)
+  INSERT_SINGLE = add_operation(1, "Insert an element", OperationCategory::MODIFY)
+  INSERT_MULTIPLE = add_operation(2, "Insert multiple comma seperated elements", OperationCategory::MODIFY)
+  INSERT_FROM_FILE = add_operation(3, "Insert multiple from file", OperationCategory::MODIFY)
+  REMOVE_ELEMENT = add_operation(4, "Remove an element", OperationCategory::MODIFY)
+  SEARCH_ELEMENT = add_operation(1, "Search an element", OperationCategory::SEARCH)
+end
 
 def main(operations)
   bst = initialization
-  curr_node = operations
-  input_option = 1
-  while input_option
-    display_operations(curr_node)
+
+  input_option = ""
+  selected_category = nil
+
+  while true
+    selected_category ? display_operations(operations, selected_category) : display_categories(operations)
+
+    puts "Enter 'home' to go back to main menu."
+    puts "Enter 'quit' to exit."
+
     input_option = STDIN.gets.chomp
     puts "Input provided: #{input_option}"
-    if input_option == "quit"
+
+    if input_option == Commands::QUIT
       quit_operation(bst)
       break
+    elsif input_option == Commands::HOME
+      selected_category = nil
+    elsif selected_category
+      perform_operation(input_option.to_i, selected_category, bst, operations)
+      selected_category = nil
+    else
+      selected_category = input_option.to_i
     end
-    perform_operation(curr_node, input_option)
   end
 end
 
-main(operations)
-
-# 1.Print
-#   1.Print largest element
-#   2.Print smallest element
-#   3.Print Traversal
-#     1.Print Inorder Traversal
-#     2.Print Preorder Traversal
-#     3.Print Postorder Traversal
-#     4.Print Level Order Traversal
-#   4.Print all Root to Leaf paths
-# 2.Modify
-#   1.Insert Operation
-#     1.Add single element
-#     2.Add multiple comma seperated elements
-#     3.Add elements from a file
-#   2.Remove Operation
-#     Remove an element by value
-# 3.Search
-#   Search an element by value
-# 4.Quit
-
-# def add_operation(map, id, message, output_message, error_message)
-#   child_operations = {}
-#   map[id] = [message, output_message, error_message, child_operations]
-# end
-
-# def create_operations_tree(operations)
-# end
-
-# class Operation
-#   attr_accessor :id, :childs[], :perform, :messages[]
-#   def perform_operation()
-#   end
-
-#   def add_operation()
-#   end
-
-#   def display_options()
-#   end
-# end
+main($operations)
