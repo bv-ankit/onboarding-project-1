@@ -77,10 +77,6 @@ def take_multiple_inputs
     end
   }
   raise "ERROR: Invalid Input" unless is_valid_input
-  #   input = input.map { |curr_value| curr_value.to_i }
-  # else
-  #   input = take_multiple_inputs
-  # end
   input
 end
 
@@ -107,7 +103,7 @@ def quit_operation(bst)
         output_string << ","
       }
       output_string = output_string.delete_suffix(",")
-      output_file << output_string
+      output_string.each_char {|char| output_file << char}
     rescue => e
       puts "ERROR: WRITE_TO_FILE: #{e.to_s}"
     ensure
@@ -211,8 +207,6 @@ operations = {
 
 def main(operations)
   bst = initialization
-
-  # create_operations_tree(operations)
   curr_node = operations
   input_option = 1
   while input_option
