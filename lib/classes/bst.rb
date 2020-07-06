@@ -126,7 +126,6 @@ class BinarySearchTree
   def replace_value(min_node, node)
     node.value = min_node.value
   end
-  end
 
   def insert_node_rec(node, value)
     return Node.new(value) unless node
@@ -137,10 +136,12 @@ class BinarySearchTree
       else
         node.right_node = Node.new(value)
       end
-    elsif node.left_node
-      insert_node_rec(node.left_node, value)
     else
-      node.left_node = Node.new(value)
+      if node.left_node
+        insert_node_rec(node.left_node, value)
+      else
+        node.left_node = Node.new(value)
+      end
     end
 
     node
