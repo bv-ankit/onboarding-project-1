@@ -147,7 +147,7 @@ def handle_modify_operation(operation)
   when Operation::INSERT_SINGLE
     begin
       user_input = take_single_input
-      puts "Node inserted #{@bst.insert_node(user_input)}"
+      puts "Value inserted #{@bst.insert_node(user_input)}"
     rescue => e
       puts e
     ensure
@@ -167,15 +167,20 @@ def handle_modify_operation(operation)
       puts e
     end
     count = 0
-    input.each { |curr_value| 
-      @bst.insert_node(curr_value.to_i) if curr_value 
+    input.each { |curr_value|
+      @bst.insert_node(curr_value.to_i) if curr_value
       count += 1
-    }
+    } if input
     puts "#{count} values inserted."
   when Operation::REMOVE_ELEMENT
     puts "Enter a value to remove:"
     input = take_single_input
-    puts " Removed #{@bst.remove_by_value(input)} element."
+    result = @bst.remove_by_value(input)
+    if result
+      puts "Removed element."
+    else
+      puts "Value do not exist."
+    end
   else
     puts "Invalid Operation"
   end

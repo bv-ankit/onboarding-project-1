@@ -76,6 +76,7 @@ class BinarySearchTree
   def remove_by_value(required_value)
     node = search_by_value(required_value, @root)
     remove_by_value_util(node) if !node.nil?
+    return node if !node.nil? 
     nil
   end
 
@@ -142,6 +143,8 @@ class BinarySearchTree
       else
         node.left_node = Node.new(value)
       end
+    else
+      return nil
     end
 
     node
