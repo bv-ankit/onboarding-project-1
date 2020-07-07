@@ -88,9 +88,11 @@ end
 
 def display_operations(category)
   puts "Choose an input option: (Eg: 1) \n"
-  OPERATIONS[category].each { |key, option| puts "#{key}. #{option}" } if OPERATIONS[category]
-  puts "Enter 'home' to go back to main menu."
-  puts "Enter 'quit' to exit."
+  OPERATIONS[category].each { |key, option|
+    puts "#{key}. #{option}" unless key == :msg
+  } if OPERATIONS[category]
+  puts "\n Enter 'home' to go back to main menu."
+  puts "Enter 'quit' to exit. \n"
 end
 
 def quit_operation
@@ -267,7 +269,7 @@ def main()
         if OPERATIONS[category].include?(input)
           perform_operation(input, category)
         else
-          puts "Invalid input"
+          puts "Invalid operation"
         end
       end
     else
@@ -275,7 +277,7 @@ def main()
       if OPERATIONS.include?(input)
         category = input
       else
-        puts "Invalid input"
+        puts "Invalid category"
       end
     end
     puts "\n"
