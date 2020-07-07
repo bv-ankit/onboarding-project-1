@@ -20,11 +20,11 @@ def read_from_file(file_location)
   input_string
 end
 
-def convert_string_to_int_array(input_string)
-  input_strs = input_string.split(",")
-  input_strs.each { |str| abort "Invalid Input" unless str.to_i.to_s == str }
-  input_array = input_strs.map { |str| str.to_i if str.to_i }
-  input_array
+def convert_string_to_int_array(string)
+  string = string.split(",")
+  string.each { |str| abort "Invalid Input" unless str.to_i.to_s == str }
+  array = string.map { |str| str.to_i if str.to_i }
+  array
 end
 
 def file_to_int_array
@@ -47,7 +47,7 @@ def initialization
     @bst.insert_node(value)
     count += 1
   }
-  puts "\n Initialization Complete! \n"
+  puts "\nInitialization Complete! \n"
   puts "Added #{count} nodes."
   puts "\n\n"
   @bst
@@ -81,18 +81,18 @@ def take_multiple_inputs
 end
 
 def display_categories
-  puts "Choose an input option: (Eg: 1) \n"
+  puts "Select a category of opearion: (Eg: 1) \n"
   OPERATIONS.each { |key, option| puts "#{key}. #{option[:msg]}" }
-  puts "Enter 'quit' to exit."
+  puts "\nEnter 'quit' to exit.\n"
 end
 
 def display_operations(category)
-  puts "Choose an input option: (Eg: 1) \n"
-  OPERATIONS[category].each { |key, option|
-    puts "#{key}. #{option}" unless key == :msg
+  puts "Select an operation to perform: (Eg: 1) \n"
+  OPERATIONS[category].each { |key, value|
+    puts "#{key}. #{value}" unless key == :msg
   } if OPERATIONS[category]
-  puts "\n Enter 'home' to go back to main menu."
-  puts "Enter 'quit' to exit. \n"
+  puts "\nEnter 'home' to go back to main menu."
+  puts "Enter 'quit' to exit.\n"
 end
 
 def quit_operation
@@ -120,29 +120,30 @@ def quit_operation
   puts "Exiting..."
 end
 
-def handle_print_operation(option)
-  case option
+def handle_print_operation(operation)
+  case operation
   when Operation::LARGEST_ELEMENT
-    puts @bst.find_largest_node.value
+    puts "Output: #{@bst.find_largest_node.value}"
   when Operation::SMALLEST_ELEMENT
-    puts @bst.find_smallest_node.value
+    puts "Output: #{@bst.find_smallest_node.value}"
   when Operation::INORDER
     puts "Output: #{@bst.inorder_traversal}"
   when Operation::PREORDER
-    p "Output: #{@bst.preorder_traversal}"
+    puts "Output: #{@bst.preorder_traversal}"
   when Operation::POSTORDER
-    p "Output: #{@bst.postorder_traversal}"
+    puts "Output: #{@bst.postorder_traversal}"
   when Operation::ROOT_TO_LEAF
+    puts "Output:"
     @bst.print_root_to_leaf_paths
   when Operation::LEVELORDER
-    p "Output: #{@bst.levelorder_traversal}"
+    puts "Output: #{@bst.levelorder_traversal}"
   else
-    puts "Invalid input"
+    puts "Invalid operation"
   end
 end
 
-def handle_modify_operation(option)
-  case option
+def handle_modify_operation(operation)
+  case operation
   when Operation::INSERT_SINGLE
     begin
       user_input = take_single_input
@@ -158,41 +159,46 @@ def handle_modify_operation(option)
       @bst.insert_node(value)
       count += 1
     }
-    puts "#{count} values inserted"
+    puts "#{count} values inserted."
   when Operation::INSERT_MULTIPLE
     begin
-      new_input = take_multiple_inputs
+      input = take_multiple_inputs
     rescue => e
       puts e
     end
-    new_input.each { |curr_value| @bst.insert_node(curr_value) if curr_value }
+    count = 0
+    input.each { |curr_value| 
+      @bst.insert_node(curr_value.to_i) if curr_value 
+      count += 1
+    }
+    puts "#{count} values inserted."
   when Operation::REMOVE_ELEMENT
     puts "Enter a value to remove:"
-    new_input = take_single_input
-    puts " Removed #{@bst.remove_by_value(new_input)} element."
+    input = take_single_input
+    puts " Removed #{@bst.remove_by_value(input)} element."
   else
-    puts "Invalid Input"
+    puts "Invalid Operation"
   end
 end
 
-def handle_search_operation(option)
-  if option == Operation::SEARCH_ELEMENT
+def handle_search_operation(operation)
+  if operation == Operation::SEARCH_ELEMENT
     puts "Enter a value to search:"
-    new_input = take_single_input
-    puts "Search found at: #{@bst.search_by_value(new_input)}"
+    input = take_single_input
+    puts "Search found at: #{@bst.search_by_value(input)}"
   end
 end
 
-def perform_operation(option, selected_category)
-  case selected_category
+def perform_operation(operation, category)
+  case category
   when OperationCategory::PRINT
-    handle_print_operation(option)
+    handle_print_operation(operation)
   when OperationCategory::MODIFY
-    handle_modify_operation(option)
+    handle_modify_operation(operation)
   when OperationCategory::SEARCH
-    handle_search_operation(option)
+    handle_search_operation(operation)
   else
-    puts "Invalid Input"
+    puts "Invalid Operation"
   end
   puts "\n\n"
 end
@@ -254,20 +260,22 @@ def main()
     category ? display_operations(category) : display_categories
 
     input = STDIN.gets.chomp
-    puts "Input provided: #{input}"
 
     if input == Commands::QUIT
+      puts "Selected option: QUIT"
       quit_operation
       break
     end
 
     if category
       if input == Commands::HOME
+        puts "Selected option: HOME"
         category = nil
       else
-        input = input.to_i
-        if OPERATIONS[category].include?(input)
-          perform_operation(input, category)
+        operation = input.to_i
+        if OPERATIONS[category].include?(operation)
+          puts "Selected operation: #{OPERATIONS[category][operation]}"
+          perform_operation(operation, category)
         else
           puts "Invalid operation"
         end
@@ -276,6 +284,7 @@ def main()
       input = input.to_i
       if OPERATIONS.include?(input)
         category = input
+        puts "Selected Category: #{OPERATIONS[category][:msg]}"
       else
         puts "Invalid category"
       end
