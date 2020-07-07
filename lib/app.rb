@@ -118,65 +118,77 @@ def quit_operation
   puts "Exiting..."
 end
 
-def perform_operation(input_option, selected_category)
+def handle_print_operation(option)
+  case option
+  when Operation::LARGEST_ELEMENT
+    puts @bst.find_largest_node.value
+  when Operation::SMALLEST_ELEMENT
+    puts @bst.find_smallest_node.value
+  when Operation::INORDER
+    puts "Output: #{@bst.inorder_traversal}"
+  when Operation::PREORDER
+    p "Output: #{@bst.preorder_traversal}"
+  when Operation::POSTORDER
+    p "Output: #{@bst.postorder_traversal}"
+  when Operation::ROOT_TO_LEAF
+    @bst.print_root_to_leaf_paths
+  when Operation::LEVELORDER
+    p "Output: #{@bst.levelorder_traversal}"
+  else
+    puts "Invalid input"
+  end
+end
+
+def handle_modify_operation(option)
+  case option
+  when Operation::INSERT_SINGLE
+    begin
+      user_input = take_single_input
+      puts "Node inserted #{@bst.insert_node(user_input)}"
+    rescue => e
+      puts e
+    ensure
+    end
+  when Operation::INSERT_FROM_FILE
+    input_array = file_to_int_array
+    count = 0
+    input_array.each { |value|
+      @bst.insert_node(value)
+      count += 1
+    }
+    puts "#{count} values inserted"
+  when Operation::INSERT_MULTIPLE
+    begin
+      new_input = take_multiple_inputs
+    rescue => e
+      puts e
+    end
+    new_input.each { |curr_value| @bst.insert_node(curr_value) if curr_value }
+  when Operation::REMOVE_ELEMENT
+    puts "Enter a value to remove:"
+    new_input = take_single_input
+    puts " Removed #{@bst.remove_by_value(new_input)} element."
+  else
+    puts "Invalid Input"
+  end
+end
+
+def handle_search_operation(option)
+  if option == Operation::SEARCH_ELEMENT
+    puts "Enter a value to search:"
+    new_input = take_single_input
+    puts "Search found at: #{@bst.search_by_value(new_input)}"
+  end
+end
+
+def perform_operation(option, selected_category)
   case selected_category
   when OperationCategory::PRINT
-    case input_option
-    when Operation::LARGEST_ELEMENT
-      puts @bst.find_largest_node.value
-    when Operation::SMALLEST_ELEMENT
-      puts @bst.find_smallest_node.value
-    when Operation::INORDER
-      puts "Output: #{@bst.inorder_traversal}"
-    when Operation::PREORDER
-      p "Output: #{@bst.preorder_traversal}"
-    when Operation::POSTORDER
-      p "Output: #{@bst.postorder_traversal}"
-    when Operation::ROOT_TO_LEAF
-      @bst.print_root_to_leaf_paths
-    when Operation::LEVELORDER
-      p "Output: #{@bst.levelorder_traversal}"
-    else
-      puts "Invalid input"
-    end
+    handle_print_operation(option)
   when OperationCategory::MODIFY
-    case input_option
-    when Operation::INSERT_SINGLE
-      begin
-        user_input = take_single_input
-        puts "Node inserted #{@bst.insert_node(user_input)}"
-      rescue => e
-        puts e
-      ensure
-      end
-    when Operation::INSERT_FROM_FILE
-      input_array = file_to_int_array
-      count = 0
-      input_array.each { |value|
-        @bst.insert_node(value)
-        count += 1
-      }
-      puts "#{count} values inserted"
-    when Operation::INSERT_MULTIPLE
-      begin
-        new_input = take_multiple_inputs
-      rescue => e
-        puts e
-      end
-      new_input.each { |curr_value| @bst.insert_node(curr_value) if curr_value }
-    when Operation::REMOVE_ELEMENT
-      puts "Enter a value to remove:"
-      new_input = take_single_input
-      puts " Removed #{@bst.remove_by_value(new_input)} element."
-    else
-      puts "Invalid Input"
-    end
+    handle_modify_operation(option)
   when OperationCategory::SEARCH
-    if input_option == Operation::SEARCH_ELEMENT
-      puts "Enter a value to search:"
-      new_input = take_single_input
-      puts "Search found at: #{@bst.search_by_value(new_input)}"
-    end
+    handle_search_operation(option)
   else
     puts "Invalid Input"
   end
@@ -199,8 +211,8 @@ def add_category(type, msg)
   type
 end
 
-def add_operation(type, msg, operation_type)
-  OPERATIONS[operation_type][type] = msg
+def add_operation(type, msg, category)
+  OPERATIONS[category][type] = msg
   type
 end
 
@@ -252,12 +264,21 @@ def main()
         category = nil
       else
         input = input.to_i
-        puts "Invalid input" if input > 3 && !category
-        perform_operation(input, category)
+        if OPERATIONS[category].include?(input)
+          perform_operation(input, category)
+        else
+          puts "Invalid input"
+        end
       end
     else
-      category = input.to_i
+      input = input.to_i
+      if OPERATIONS.include?(input)
+        category = input
+      else
+        puts "Invalid input"
+      end
     end
+    puts "\n"
   end
 end
 
