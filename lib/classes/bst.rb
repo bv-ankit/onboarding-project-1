@@ -136,7 +136,7 @@ class BinarySearchTree
       else
         node.right_node = Node.new(value)
       end
-    else
+    elsif value < node.value
       if node.left_node
         insert_node_rec(node.left_node, value)
       else

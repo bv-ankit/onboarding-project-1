@@ -59,10 +59,9 @@ def take_single_input
   if new_input.to_i.to_s == new_input
     new_input
   else
-    puts "Invalid Input!"
-    new_input = take_single_input
+    raise "ERROR: Invalid Input!"
   end
-  new_input
+  new_input.to_i
 end
 
 def take_multiple_inputs
@@ -77,6 +76,7 @@ def take_multiple_inputs
     end
   }
   raise "ERROR: Invalid Input" unless is_valid_input
+  input.map { |value| value.to_i }
   input
 end
 
@@ -87,7 +87,7 @@ end
 
 def display_operations(operations, category)
   puts "Choose an input option: (Eg: 1) \n"
-  operations[category].each { |key, option| puts "#{key}. #{option}" }
+  operations[category].each { |key, option| puts "#{key}. #{option}" } if operations[category]
 end
 
 def quit_operation(bst)
@@ -124,7 +124,7 @@ def perform_operation(input_option, selected_category, bst, operations)
     when Operation::SMALLEST_ELEMENT
       puts bst.find_smallest_node.value
     when Operation::INORDER
-      p "Output: #{bst.inorder_traversal}"
+      puts "Output: #{bst.inorder_traversal}"
     when Operation::PREORDER
       p "Output: #{bst.preorder_traversal}"
     when Operation::POSTORDER
@@ -138,6 +138,22 @@ def perform_operation(input_option, selected_category, bst, operations)
     end
   when OperationCategory::MODIFY
     case input_option
+    when Operation::INSERT_SINGLE
+      begin
+        user_input = take_single_input
+        puts "Node inserted #{bst.insert_node(user_input)}"
+      rescue => e
+        puts e
+      ensure
+      end
+    when Operation::INSERT_FROM_FILE
+      input_array = file_to_int_array
+      count = 0
+      input_array.each { |value|
+        bst.insert_node(value)
+        count += 1
+      }
+      puts "#{count} values inserted"
     when Operation::INSERT_MULTIPLE
       begin
         new_input = take_multiple_inputs
@@ -221,6 +237,9 @@ def main(operations)
       quit_operation(bst)
       break
     elsif input_option == Commands::HOME
+      selected_category = nil
+    elsif input_option.to_i > 3 && !selected_category
+      puts "Invalid input"
       selected_category = nil
     elsif selected_category
       perform_operation(input_option.to_i, selected_category, bst, operations)
