@@ -38,19 +38,19 @@ end
 
 def initialization
   puts "Welcome to Binary Search Tree Utility \n\n"
-  bst = BinarySearchTree.new
+  @bst = BinarySearchTree.new
   puts "Do you want to initialize by importing values from a file ? \n" \
        "Example: './output/output.txt' (Leave blank to not import)"
   input_array = file_to_int_array
   count = 0
   input_array.each { |value|
-    bst.insert_node(value)
+    @bst.insert_node(value)
     count += 1
   }
   puts "\n Initialization Complete! \n"
   puts "Added #{count} nodes."
   puts "\n\n"
-  bst
+  @bst
 end
 
 def take_single_input
@@ -80,17 +80,20 @@ def take_multiple_inputs
   input
 end
 
-def display_categories(operations)
+def display_categories
   puts "Choose an input option: (Eg: 1) \n"
-  operations.each { |key, option| puts "#{key}. #{option[:msg]}" }
+  OPERATIONS.each { |key, option| puts "#{key}. #{option[:msg]}" }
+  puts "Enter 'quit' to exit."
 end
 
-def display_operations(operations, category)
+def display_operations(category)
   puts "Choose an input option: (Eg: 1) \n"
-  operations[category].each { |key, option| puts "#{key}. #{option}" } if operations[category]
+  OPERATIONS[category].each { |key, option| puts "#{key}. #{option}" } if OPERATIONS[category]
+  puts "Enter 'home' to go back to main menu."
+  puts "Enter 'quit' to exit."
 end
 
-def quit_operation(bst)
+def quit_operation
   puts "Do you want to save the end state of the tree?"
   puts "Leave blank for NO or enter 'Y' or 'y' for YES."
   input = STDIN.gets.chomp
@@ -98,7 +101,7 @@ def quit_operation(bst)
     puts "End state of BST saved in ./output/output.txt"
     begin
       output_file = File.new("./output/output.txt", "wb")
-      elements = bst.preorder_traversal
+      elements = @bst.preorder_traversal
       output_string = ""
       elements.each { |element|
         output_string << element.to_s
@@ -115,24 +118,24 @@ def quit_operation(bst)
   puts "Exiting..."
 end
 
-def perform_operation(input_option, selected_category, bst, operations)
+def perform_operation(input_option, selected_category)
   case selected_category
   when OperationCategory::PRINT
     case input_option
     when Operation::LARGEST_ELEMENT
-      puts bst.find_largest_node.value
+      puts @bst.find_largest_node.value
     when Operation::SMALLEST_ELEMENT
-      puts bst.find_smallest_node.value
+      puts @bst.find_smallest_node.value
     when Operation::INORDER
-      puts "Output: #{bst.inorder_traversal}"
+      puts "Output: #{@bst.inorder_traversal}"
     when Operation::PREORDER
-      p "Output: #{bst.preorder_traversal}"
+      p "Output: #{@bst.preorder_traversal}"
     when Operation::POSTORDER
-      p "Output: #{bst.postorder_traversal}"
+      p "Output: #{@bst.postorder_traversal}"
     when Operation::ROOT_TO_LEAF
-      bst.print_root_to_leaf_paths
+      @bst.print_root_to_leaf_paths
     when Operation::LEVELORDER
-      p "Output: #{bst.levelorder_traversal}"
+      p "Output: #{@bst.levelorder_traversal}"
     else
       puts "Invalid input"
     end
@@ -141,7 +144,7 @@ def perform_operation(input_option, selected_category, bst, operations)
     when Operation::INSERT_SINGLE
       begin
         user_input = take_single_input
-        puts "Node inserted #{bst.insert_node(user_input)}"
+        puts "Node inserted #{@bst.insert_node(user_input)}"
       rescue => e
         puts e
       ensure
@@ -150,7 +153,7 @@ def perform_operation(input_option, selected_category, bst, operations)
       input_array = file_to_int_array
       count = 0
       input_array.each { |value|
-        bst.insert_node(value)
+        @bst.insert_node(value)
         count += 1
       }
       puts "#{count} values inserted"
@@ -160,11 +163,11 @@ def perform_operation(input_option, selected_category, bst, operations)
       rescue => e
         puts e
       end
-      new_input.each { |curr_value| bst.insert_node(curr_value) if curr_value }
+      new_input.each { |curr_value| @bst.insert_node(curr_value) if curr_value }
     when Operation::REMOVE_ELEMENT
       puts "Enter a value to remove:"
       new_input = take_single_input
-      puts " Removed #{bst.remove_by_value(new_input)} element."
+      puts " Removed #{@bst.remove_by_value(new_input)} element."
     else
       puts "Invalid Input"
     end
@@ -172,7 +175,7 @@ def perform_operation(input_option, selected_category, bst, operations)
     if input_option == Operation::SEARCH_ELEMENT
       puts "Enter a value to search:"
       new_input = take_single_input
-      puts "Search found at: #{bst.search_by_value(new_input)}"
+      puts "Search found at: #{@bst.search_by_value(new_input)}"
     end
   else
     puts "Invalid Input"
@@ -180,15 +183,24 @@ def perform_operation(input_option, selected_category, bst, operations)
   puts "\n\n"
 end
 
-$operations = {}
+# Sample Operations Hash
+# OPERATIONS = {
+#   :msg => "",
+#   1 => {
+#     1 => {"msg" => ""},
+#     2 => {"msg" => ""}
+#   }
+#   2 = > {}
+# }
+OPERATIONS = {}
 
 def add_category(type, msg)
-  $operations[type] = { :msg => msg }
+  OPERATIONS[type] = { :msg => msg }
   type
 end
 
 def add_operation(type, msg, operation_type)
-  $operations[operation_type][type] = msg
+  OPERATIONS[operation_type][type] = msg
   type
 end
 
@@ -218,36 +230,35 @@ module Operation
   SEARCH_ELEMENT = add_operation(1, "Search an element", OperationCategory::SEARCH)
 end
 
-def main(operations)
-  bst = initialization
+def main()
+  @bst = initialization
 
-  input_option = ""
-  selected_category = nil
+  input = ""
+  category = nil
 
   while true
-    selected_category ? display_operations(operations, selected_category) : display_categories(operations)
+    category ? display_operations(category) : display_categories
 
-    puts "Enter 'home' to go back to main menu."
-    puts "Enter 'quit' to exit."
+    input = STDIN.gets.chomp
+    puts "Input provided: #{input}"
 
-    input_option = STDIN.gets.chomp
-    puts "Input provided: #{input_option}"
-
-    if input_option == Commands::QUIT
-      quit_operation(bst)
+    if input == Commands::QUIT
+      quit_operation
       break
-    elsif input_option == Commands::HOME
-      selected_category = nil
-    elsif input_option.to_i > 3 && !selected_category
-      puts "Invalid input"
-      selected_category = nil
-    elsif selected_category
-      perform_operation(input_option.to_i, selected_category, bst, operations)
-      selected_category = nil
+    end
+
+    if category
+      if input == Commands::HOME
+        category = nil
+      else
+        input = input.to_i
+        puts "Invalid input" if input > 3 && !category
+        perform_operation(input, category)
+      end
     else
-      selected_category = input_option.to_i
+      category = input.to_i
     end
   end
 end
 
-main($operations)
+main()
