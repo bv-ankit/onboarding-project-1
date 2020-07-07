@@ -5,12 +5,28 @@ class BinarySearchTree
     @root = Node.new(nil)
   end
 
-  def insert_node(value)
-    if @root.value
-      insert_node_rec(@root, value)
+  def insert_node(node = @root, value)
+    if node.value
+      if value > node.value
+        if node.right_node
+          insert_node(node.right_node, value)
+        else
+          node.right_node = Node.new(value)
+        end
+      elsif value < node.value
+        if node.left_node
+          insert_node(node.left_node, value)
+        else
+          node.left_node = Node.new(value)
+        end
+      else
+        return nil
+      end
     else
       @root = Node.new(value)
+      node = @root
     end
+    node
   end
 
   def preorder_traversal(node = @root)
@@ -76,7 +92,7 @@ class BinarySearchTree
   def remove_by_value(required_value)
     node = search_by_value(required_value, @root)
     remove_by_value_util(node) if !node.nil?
-    return node if !node.nil? 
+    return node if !node.nil?
     nil
   end
 
@@ -113,7 +129,7 @@ class BinarySearchTree
       node.right_node = node.right_node.right_node
     else
       min_node = min(node.right_node)
-      replace_value(min_node, node)
+      replace_value(node, min_node)
       remove_min(min_node)
     end
 
@@ -124,29 +140,7 @@ class BinarySearchTree
     node = nil
   end
 
-  def replace_value(min_node, node)
-    node.value = min_node.value
-  end
-
-  def insert_node_rec(node, value)
-    return Node.new(value) unless node
-
-    if value > node.value
-      if node.right_node
-        insert_node_rec(node.right_node, value)
-      else
-        node.right_node = Node.new(value)
-      end
-    elsif value < node.value
-      if node.left_node
-        insert_node_rec(node.left_node, value)
-      else
-        node.left_node = Node.new(value)
-      end
-    else
-      return nil
-    end
-
-    node
+  def replace_value(node1, node2)
+    node1.value = node2.value
   end
 end

@@ -8,21 +8,21 @@ def get_file_location
 end
 
 def read_from_file(file_location)
-  input_string = ""
+  string = ""
   begin
-    input_file = File.new(file_location, "rb")
-    input_file.each_byte { |ch| input_string << ch }
+    file = File.new(file_location, "rb")
+    file.each_byte { |ch| string << ch }
   rescue => e
     puts "ERROR: READ_FROM_FILE: #{e.to_s}"
   ensure
-    input_file.close if input_file
+    file.close if file
   end
-  input_string
+  string
 end
 
 def convert_string_to_int_array(string)
   string = string.split(",")
-  string.each { |str| abort "Invalid Input" unless str.to_i.to_s == str }
+  string.each { |str| raise "ERROR: Invalid value #{str}" unless str.to_i.to_s == str }
   array = string.map { |str| str.to_i if str.to_i }
   array
 end
@@ -30,10 +30,14 @@ end
 def file_to_int_array
   file_location = get_file_location
   return [] if file_location == ""
-  input_string = read_from_file(file_location)
-  return [] if input_string == ""
-  input_array = convert_string_to_int_array(input_string)
-  input_array
+  string = read_from_file(file_location)
+  return [] if string == ""
+  begin
+    array = convert_string_to_int_array(string)
+  rescue => e
+    puts e
+  end
+  array
 end
 
 def initialization
@@ -46,38 +50,40 @@ def initialization
   input_array.each { |value|
     @bst.insert_node(value)
     count += 1
-  }
+  } if input_array
   puts "\nInitialization Complete! \n"
   puts "Added #{count} nodes."
   puts "\n\n"
-  @bst
 end
 
 def take_single_input
   puts "Enter a value:"
-  new_input = STDIN.gets.chomp
-  if new_input.to_i.to_s == new_input
-    new_input
-  else
-    raise "ERROR: Invalid Input!"
+  begin
+    input = STDIN.gets.chomp
+    if input.to_i.to_s == input
+      return input.to_i
+    else
+      raise "ERROR: Invalid value #{input}"
+    end
+  rescue => e
+    puts e
   end
-  new_input.to_i
+  nil
 end
 
 def take_multiple_inputs
   puts "Enter comma seperated numbers:"
   input = STDIN.gets.chomp
   input = input.split(",")
-  is_valid_input = true
-  input.each { |str|
-    unless str.to_i.to_s == str
-      is_valid_input = false
-      break
-    end
-  }
-  raise "ERROR: Invalid Input" unless is_valid_input
-  input.map { |value| value.to_i }
-  input
+  begin
+    input.each { |str|
+      raise "ERROR: Invalid value #{str}" unless str.to_i.to_s == str
+    }
+    input = input.map { |value| value.to_i }
+    input
+  rescue => e
+    puts e
+  end
 end
 
 def display_categories
@@ -138,19 +144,17 @@ def handle_print_operation(operation)
   when Operation::LEVELORDER
     puts "Output: #{@bst.levelorder_traversal}"
   else
-    puts "Invalid operation"
+    puts "ERROR: Invalid operation #{operation}"
   end
 end
 
 def handle_modify_operation(operation)
   case operation
   when Operation::INSERT_SINGLE
-    begin
-      user_input = take_single_input
-      puts "Value inserted #{@bst.insert_node(user_input)}"
-    rescue => e
-      puts e
-    ensure
+    user_input = take_single_input
+    if user_input
+      result = @bst.insert_node(user_input)
+      puts "Value inserted: #{user_input}"
     end
   when Operation::INSERT_FROM_FILE
     input_array = file_to_int_array
@@ -158,39 +162,36 @@ def handle_modify_operation(operation)
     input_array.each { |value|
       @bst.insert_node(value)
       count += 1
-    }
+    } if input_array
     puts "#{count} values inserted."
   when Operation::INSERT_MULTIPLE
-    begin
-      input = take_multiple_inputs
-    rescue => e
-      puts e
-    end
+    input = take_multiple_inputs
     count = 0
-    input.each { |curr_value|
-      @bst.insert_node(curr_value.to_i) if curr_value
+    input.each { |value|
+      @bst.insert_node(value.to_i) if value
       count += 1
     } if input
     puts "#{count} values inserted."
   when Operation::REMOVE_ELEMENT
-    puts "Enter a value to remove:"
     input = take_single_input
-    result = @bst.remove_by_value(input)
-    if result
-      puts "Removed element."
-    else
-      puts "Value do not exist."
+    if input
+      result = @bst.remove_by_value(input)
+      puts "Removed value #{input}." if result
+      puts "Value #{input} not present." if !result
     end
   else
-    puts "Invalid Operation"
+    puts "ERROR: Invalid Operation #{operation}"
   end
 end
 
 def handle_search_operation(operation)
   if operation == Operation::SEARCH_ELEMENT
-    puts "Enter a value to search:"
     input = take_single_input
-    puts "Search found at: #{@bst.search_by_value(input)}"
+    if input
+      result = @bst.search_by_value(input)
+      puts "Search of value #{input} found at: #{result}" if result
+      puts "Search of value #{input} not found!" if !result
+    end
   end
 end
 
@@ -203,9 +204,9 @@ def perform_operation(operation, category)
   when OperationCategory::SEARCH
     handle_search_operation(operation)
   else
-    puts "Invalid Operation"
+    puts "ERROR: Invalid Operation #{category}"
   end
-  puts "\n\n"
+  puts "\n"
 end
 
 # Sample Operations Hash
@@ -217,6 +218,7 @@ end
 #   }
 #   2 = > {}
 # }
+
 OPERATIONS = {}
 
 def add_category(type, msg)
@@ -256,7 +258,7 @@ module Operation
 end
 
 def main()
-  @bst = initialization
+  initialization
 
   input = ""
   category = nil
@@ -279,10 +281,10 @@ def main()
       else
         operation = input.to_i
         if OPERATIONS[category].include?(operation)
-          puts "Selected operation: #{OPERATIONS[category][operation]}"
+          puts "Selected operation: #{OPERATIONS[category][operation]} \n"
           perform_operation(operation, category)
         else
-          puts "Invalid operation"
+          puts "ERROR: Invalid operation #{operation}"
         end
       end
     else
@@ -291,7 +293,7 @@ def main()
         category = input
         puts "Selected Category: #{OPERATIONS[category][:msg]}"
       else
-        puts "Invalid category"
+        puts "ERROR: Invalid category #{category}"
       end
     end
     puts "\n"
